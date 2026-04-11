@@ -1,4 +1,7 @@
+import { inject, track } from './vendor/vercel-analytics.mjs';
 import { ClaimGovernor, inferRecallSourceType } from './dist/index.js';
+
+inject({ mode: 'auto' });
 
 const scenarios = {
   'unsupported-fact': {
@@ -102,10 +105,12 @@ const directSourcesInput = document.querySelector('#directSources');
 const recallType = document.querySelector('#recallType');
 const noteStatus = document.querySelector('#noteStatus');
 const scenarioButtons = document.querySelectorAll('.scenario-button');
+const themeButtons = document.querySelectorAll('.theme-button');
 
 let activeScenarioKey = 'unsupported-fact';
 let activeRecallTelemetry = scenarios[activeScenarioKey].recallTelemetry;
 
+applyTheme(document.documentElement.dataset.themePreference || 'system');
 hydrateScenario(activeScenarioKey);
 
 scenarioButtons.forEach((button) => {
@@ -116,6 +121,7 @@ scenarioButtons.forEach((button) => {
     activeRecallTelemetry = scenarios[key].recallTelemetry;
     scenarioButtons.forEach((item) => item.classList.toggle('active', item === button));
     hydrateScenario(key);
+    track('Scenario Selected', { scenario: key });
   });
 });
 
@@ -131,6 +137,20 @@ formatJson.addEventListener('click', () => {
 });
 
 directSourcesInput.addEventListener('change', renderOutput);
+themeButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    const choice = button.dataset.themeChoice;
+    if (!choice) return;
+    applyTheme(choice);
+    track('Theme Changed', { theme: choice });
+  });
+});
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if ((document.documentElement.dataset.themePreference || 'system') === 'system') {
+    applyTheme('system');
+  }
+});
 
 function hydrateScenario(key) {
   const scenario = scenarios[key];
@@ -151,11 +171,29 @@ function renderOutput() {
     noteStatus.textContent = result.governor_note ?? 'No downgrade note';
     recallType.textContent = inferRecallSourceType(activeRecallTelemetry);
     hideError();
+    track('Governor Run', {
+      scenario: activeScenarioKey,
+      downgraded: Boolean(result.governor_note),
+      claims: result.claims.length,
+    });
   } catch (error) {
     outputEnvelope.textContent = '';
     noteStatus.textContent = 'Input error';
     showError(error);
+    track('Governor Error', { scenario: activeScenarioKey });
   }
+}
+
+function applyTheme(choice) {
+  const resolved = choice === 'system'
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : choice;
+  document.documentElement.dataset.themePreference = choice;
+  document.documentElement.dataset.theme = resolved;
+  localStorage.setItem('llm-claim-governor-theme', choice);
+  themeButtons.forEach((button) => {
+    button.setAttribute('aria-pressed', String(button.dataset.themeChoice === choice));
+  });
 }
 
 function readDirectSourceTypes() {

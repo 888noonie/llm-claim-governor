@@ -16,21 +16,44 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./demo.css" />
+    <script>
+      (() => {
+        const stored = localStorage.getItem('llm-claim-governor-theme') || 'system';
+        const resolved = stored === 'system'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : stored;
+        document.documentElement.dataset.theme = resolved;
+        document.documentElement.dataset.themePreference = stored;
+      })();
+    </script>
   </head>
   <body>
     <div class="backdrop backdrop-a"></div>
     <div class="backdrop backdrop-b"></div>
     <main class="page">
       <section class="hero">
-        <p class="eyebrow">Vercel Demo</p>
+        <div class="hero-topbar">
+          <div class="brand-lockup">
+            <img class="brand-logo" src="./brand/ninfinityn.svg" alt="N ∞ N logo" />
+            <div>
+              <p class="eyebrow">Vercel Demo</p>
+              <p class="brand-caption">N ∞ N Research</p>
+            </div>
+          </div>
+          <div class="theme-switcher" role="group" aria-label="Theme switcher">
+            <button class="theme-button" data-theme-choice="light" aria-pressed="false">Light</button>
+            <button class="theme-button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+            <button class="theme-button" data-theme-choice="system" aria-pressed="false">System</button>
+          </div>
+        </div>
         <h1>Govern claims before users trust them.</h1>
         <p class="lede">
           This demo runs the real <code>llm-claim-governor</code> package in the browser.
           Edit the claim envelope, switch scenarios, and inspect how provenance changes the result.
         </p>
         <div class="hero-actions">
-          <a class="button primary" href="https://github.com/888noonie/llm-claim-governor">View Repo</a>
-          <a class="button ghost" href="https://github.com/888noonie/llm-claim-governor#readme">Read README</a>
+          <a class="button primary" href="https://github.com/888noonie/llm-claim-governor" target="_blank" rel="noreferrer">View Repo</a>
+          <a class="button ghost" href="https://github.com/888noonie/llm-claim-governor#readme" target="_blank" rel="noreferrer">Read README</a>
         </div>
       </section>
 
@@ -92,6 +115,17 @@
           <pre id="outputEnvelope"></pre>
         </div>
       </section>
+
+      <footer class="footer">
+        <div class="footer-brand">
+          <img class="footer-logo" src="./brand/ninfinityn.svg" alt="" />
+          <p>LLM Claim Governor by N ∞ N</p>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/888noonie/llm-claim-governor" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://github.com/888noonie/llm-claim-governor#readme" target="_blank" rel="noreferrer">README</a>
+        </div>
+      </footer>
     </main>
 
     <script type="module" src="./demo.js"></script>
