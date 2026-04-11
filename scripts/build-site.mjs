@@ -9,7 +9,7 @@ const siteDir = resolve(root, 'site');
 await rm(siteDir, { recursive: true, force: true });
 await mkdir(siteDir, { recursive: true });
 
-for (const file of ['index.html', 'demo.css', 'demo.js']) {
+for (const file of ['index.html', 'demo.css', 'demo.js', 'favicon.svg']) {
   await cp(resolve(root, file), resolve(siteDir, file));
 }
 
