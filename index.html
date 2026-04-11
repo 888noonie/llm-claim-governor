@@ -99,6 +99,14 @@
             <h2>Input Envelope</h2>
             <p>Structured input to <code>ClaimGovernor.enforce(...)</code>.</p>
           </div>
+          <div class="field-toolbar">
+            <div class="font-controls" role="group" aria-label="Input font size">
+              <span class="toolbar-label">Text</span>
+              <button class="toolbar-button" id="inputFontDown" type="button" aria-label="Decrease input text size">-</button>
+              <button class="toolbar-button" id="inputFontUp" type="button" aria-label="Increase input text size">+</button>
+            </div>
+            <button class="toolbar-button" id="resetInput" type="button">Reset</button>
+          </div>
           <textarea id="inputEnvelope" spellcheck="false"></textarea>
           <div class="editor-actions">
             <button class="button primary" id="runDemo">Run governor</button>
@@ -111,6 +119,14 @@
           <div class="panel-header">
             <h2>Governed Output</h2>
             <p>Result after provenance-aware confidence downgrades.</p>
+          </div>
+          <div class="field-toolbar">
+            <div class="font-controls" role="group" aria-label="Output font size">
+              <span class="toolbar-label">Text</span>
+              <button class="toolbar-button" id="outputFontDown" type="button" aria-label="Decrease output text size">-</button>
+              <button class="toolbar-button" id="outputFontUp" type="button" aria-label="Increase output text size">+</button>
+            </div>
+            <button class="toolbar-button" id="copyOutput" type="button">Copy</button>
           </div>
           <pre id="outputEnvelope"></pre>
         </div>

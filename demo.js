@@ -106,11 +106,20 @@ const recallType = document.querySelector('#recallType');
 const noteStatus = document.querySelector('#noteStatus');
 const scenarioButtons = document.querySelectorAll('.scenario-button');
 const themeButtons = document.querySelectorAll('.theme-button');
+const inputFontDown = document.querySelector('#inputFontDown');
+const inputFontUp = document.querySelector('#inputFontUp');
+const outputFontDown = document.querySelector('#outputFontDown');
+const outputFontUp = document.querySelector('#outputFontUp');
+const resetInput = document.querySelector('#resetInput');
+const copyOutput = document.querySelector('#copyOutput');
 
 let activeScenarioKey = 'unsupported-fact';
 let activeRecallTelemetry = scenarios[activeScenarioKey].recallTelemetry;
+let inputFontSize = Number(localStorage.getItem('llm-claim-governor-input-font') || 0.88);
+let outputFontSize = Number(localStorage.getItem('llm-claim-governor-output-font') || 0.88);
 
 applyTheme(document.documentElement.dataset.themePreference || 'system');
+applyFieldFontSizes();
 hydrateScenario(activeScenarioKey);
 
 scenarioButtons.forEach((button) => {
@@ -137,6 +146,29 @@ formatJson.addEventListener('click', () => {
 });
 
 directSourcesInput.addEventListener('change', renderOutput);
+inputFontDown.addEventListener('click', () => adjustFontSize('input', -0.04));
+inputFontUp.addEventListener('click', () => adjustFontSize('input', 0.04));
+outputFontDown.addEventListener('click', () => adjustFontSize('output', -0.04));
+outputFontUp.addEventListener('click', () => adjustFontSize('output', 0.04));
+resetInput.addEventListener('click', () => {
+  hydrateScenario(activeScenarioKey);
+  track('Input Reset', { scenario: activeScenarioKey });
+});
+copyOutput.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(outputEnvelope.textContent || '');
+    copyOutput.textContent = 'Copied';
+    setTimeout(() => {
+      copyOutput.textContent = 'Copy';
+    }, 1200);
+    track('Output Copied', { scenario: activeScenarioKey });
+  } catch {
+    copyOutput.textContent = 'Copy failed';
+    setTimeout(() => {
+      copyOutput.textContent = 'Copy';
+    }, 1200);
+  }
+});
 themeButtons.forEach((button) => {
   button.addEventListener('click', () => {
     const choice = button.dataset.themeChoice;
@@ -194,6 +226,27 @@ function applyTheme(choice) {
   themeButtons.forEach((button) => {
     button.setAttribute('aria-pressed', String(button.dataset.themeChoice === choice));
   });
+}
+
+function adjustFontSize(target, delta) {
+  if (target === 'input') {
+    inputFontSize = clamp(inputFontSize + delta, 0.72, 1.3);
+    localStorage.setItem('llm-claim-governor-input-font', String(inputFontSize));
+  } else {
+    outputFontSize = clamp(outputFontSize + delta, 0.72, 1.3);
+    localStorage.setItem('llm-claim-governor-output-font', String(outputFontSize));
+  }
+  applyFieldFontSizes();
+  track('Font Size Changed', { target, size: target === 'input' ? inputFontSize : outputFontSize });
+}
+
+function applyFieldFontSizes() {
+  inputEnvelope.style.setProperty('--field-font-size', `${inputFontSize}rem`);
+  outputEnvelope.style.setProperty('--field-font-size', `${outputFontSize}rem`);
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function readDirectSourceTypes() {
