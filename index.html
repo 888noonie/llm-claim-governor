@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>llm-claim-governor demo</title>
+    <meta
+      name="description"
+      content="Interactive demo for llm-claim-governor: typed provenance and confidence downgrades for LLM claim envelopes."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <div class="backdrop backdrop-a"></div>
+    <div class="backdrop backdrop-b"></div>
+    <main class="page">
+      <section class="hero">
+        <p class="eyebrow">Vercel Demo</p>
+        <h1>Govern claims before users trust them.</h1>
+        <p class="lede">
+          This demo runs the real <code>llm-claim-governor</code> package in the browser.
+          Edit the claim envelope, switch scenarios, and inspect how provenance changes the result.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="https://github.com/888noonie/llm-claim-governor">View Repo</a>
+          <a class="button ghost" href="./README.md">Read README</a>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <div class="panel controls">
+          <div class="panel-header">
+            <h2>Scenarios</h2>
+            <p>Use a preset or edit the JSON directly.</p>
+          </div>
+          <div class="scenario-list">
+            <button class="scenario-button active" data-scenario="unsupported-fact">Unsupported fact</button>
+            <button class="scenario-button" data-scenario="fast-recall">Fast recall only</button>
+            <button class="scenario-button" data-scenario="verified-source">Verified repo source</button>
+            <button class="scenario-button" data-scenario="unverified-research">Unverified research</button>
+            <button class="scenario-button" data-scenario="stale-high">Stale high confidence</button>
+            <button class="scenario-button" data-scenario="custom-direct">Custom direct-source policy</button>
+          </div>
+
+          <div class="option-group">
+            <label for="directSources">Direct source types</label>
+            <input
+              id="directSources"
+              type="text"
+              value="repo_file,test_result,runtime_probe,recall_direct,research_verified"
+            />
+            <p class="hint">Comma-separated. This changes the direct-evidence policy at runtime.</p>
+          </div>
+
+          <div class="signal-row">
+            <div class="signal-card">
+              <span class="signal-label">Recall path</span>
+              <strong id="recallType">recall_direct</strong>
+            </div>
+            <div class="signal-card">
+              <span class="signal-label">Governor note</span>
+              <strong id="noteStatus">No downgrade note</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel editor-panel">
+          <div class="panel-header">
+            <h2>Input Envelope</h2>
+            <p>Structured input to <code>ClaimGovernor.enforce(...)</code>.</p>
+          </div>
+          <textarea id="inputEnvelope" spellcheck="false"></textarea>
+          <div class="editor-actions">
+            <button class="button primary" id="runDemo">Run governor</button>
+            <button class="button ghost" id="formatJson">Format JSON</button>
+          </div>
+          <p id="inputError" class="error" hidden></p>
+        </div>
+
+        <div class="panel output-panel">
+          <div class="panel-header">
+            <h2>Governed Output</h2>
+            <p>Result after provenance-aware confidence downgrades.</p>
+          </div>
+          <pre id="outputEnvelope"></pre>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./demo.js"></script>
+  </body>
+</html>

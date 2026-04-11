@@ -1,0 +1,55 @@
+{
+  "name": "llm-claim-governor",
+  "version": "0.1.0",
+  "description": "Typed claim governance for LLM outputs with provenance-aware confidence downgrades.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:site": "node ./scripts/build-site.mjs",
+    "build:demo": "npm run build && npm run build:site",
+    "test": "vitest run",
+    "dev:demo": "npm run build:demo && npx serve site",
+    "vercel-build": "npm run build:demo",
+    "prepublishOnly": "npm test && npm run build"
+  },
+  "keywords": [
+    "llm",
+    "agent",
+    "provenance",
+    "safety",
+    "claims",
+    "typescript",
+    "hallucination"
+  ],
+  "author": "888noonie",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/888noonie/llm-claim-governor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/888noonie/llm-claim-governor/issues"
+  },
+  "homepage": "https://github.com/888noonie/llm-claim-governor#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
