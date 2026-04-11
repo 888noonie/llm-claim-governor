@@ -112,11 +112,15 @@ const outputFontDown = document.querySelector('#outputFontDown');
 const outputFontUp = document.querySelector('#outputFontUp');
 const resetInput = document.querySelector('#resetInput');
 const copyOutput = document.querySelector('#copyOutput');
+const loadDowngrade = document.querySelector('#loadDowngrade');
+const loadNoDowngrade = document.querySelector('#loadNoDowngrade');
+const toast = document.querySelector('#toast');
 
 let activeScenarioKey = 'unsupported-fact';
 let activeRecallTelemetry = scenarios[activeScenarioKey].recallTelemetry;
 let inputFontSize = Number(localStorage.getItem('llm-claim-governor-input-font') || 0.88);
 let outputFontSize = Number(localStorage.getItem('llm-claim-governor-output-font') || 0.88);
+let toastTimer;
 
 applyTheme(document.documentElement.dataset.themePreference || 'system');
 applyFieldFontSizes();
@@ -152,22 +156,27 @@ outputFontDown.addEventListener('click', () => adjustFontSize('output', -0.04));
 outputFontUp.addEventListener('click', () => adjustFontSize('output', 0.04));
 resetInput.addEventListener('click', () => {
   hydrateScenario(activeScenarioKey);
+  showToast('Input reset to the active scenario.');
   track('Input Reset', { scenario: activeScenarioKey });
 });
 copyOutput.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(outputEnvelope.textContent || '');
-    copyOutput.textContent = 'Copied';
-    setTimeout(() => {
-      copyOutput.textContent = 'Copy';
-    }, 1200);
+    showToast('Governed output copied.');
     track('Output Copied', { scenario: activeScenarioKey });
   } catch {
-    copyOutput.textContent = 'Copy failed';
-    setTimeout(() => {
-      copyOutput.textContent = 'Copy';
-    }, 1200);
+    showToast('Copy failed.');
   }
+});
+loadDowngrade.addEventListener('click', () => {
+  activateScenario('unsupported-fact');
+  showToast('Loaded downgrade example.');
+  track('Quick Example Loaded', { type: 'downgrade' });
+});
+loadNoDowngrade.addEventListener('click', () => {
+  activateScenario('verified-source');
+  showToast('Loaded no-downgrade example.');
+  track('Quick Example Loaded', { type: 'no-downgrade' });
 });
 themeButtons.forEach((button) => {
   button.addEventListener('click', () => {
@@ -184,12 +193,44 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
   }
 });
 
+window.addEventListener('keydown', (event) => {
+  const meta = event.ctrlKey || event.metaKey;
+  if (meta && event.key === 'Enter') {
+    event.preventDefault();
+    renderOutput();
+    showToast('Governor run.');
+    return;
+  }
+  if (meta && event.shiftKey && event.key.toLowerCase() === 'f') {
+    event.preventDefault();
+    try {
+      const value = JSON.parse(inputEnvelope.value);
+      inputEnvelope.value = stringify(value);
+      hideError();
+      showToast('Input formatted.');
+      track('Input Formatted', { scenario: activeScenarioKey });
+    } catch (error) {
+      showError(error);
+      showToast('Could not format invalid JSON.');
+    }
+  }
+});
+
 function hydrateScenario(key) {
   const scenario = scenarios[key];
   directSourcesInput.value = scenario.directSourceTypes.join(',');
   inputEnvelope.value = stringify(scenario.envelope);
   recallType.textContent = inferRecallSourceType(scenario.recallTelemetry);
   renderOutput();
+}
+
+function activateScenario(key) {
+  activeScenarioKey = key;
+  activeRecallTelemetry = scenarios[key].recallTelemetry;
+  scenarioButtons.forEach((item) => {
+    item.classList.toggle('active', item.dataset.scenario === key);
+  });
+  hydrateScenario(key);
 }
 
 function renderOutput() {
@@ -272,4 +313,14 @@ function showError(error) {
 function hideError() {
   inputError.hidden = true;
   inputError.textContent = '';
+}
+
+function showToast(message) {
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('visible');
+  }, 1400);
 }

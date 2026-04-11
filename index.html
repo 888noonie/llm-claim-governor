@@ -63,6 +63,10 @@
             <h2>Scenarios</h2>
             <p>Use a preset or edit the JSON directly.</p>
           </div>
+          <div class="quick-actions">
+            <button class="button ghost" id="loadDowngrade" type="button">Load downgrade</button>
+            <button class="button ghost" id="loadNoDowngrade" type="button">Load no downgrade</button>
+          </div>
           <div class="scenario-list">
             <button class="scenario-button active" data-scenario="unsupported-fact">Unsupported fact</button>
             <button class="scenario-button" data-scenario="fast-recall">Fast recall only</button>
@@ -92,6 +96,16 @@
               <strong id="noteStatus">No downgrade note</strong>
             </div>
           </div>
+          <details class="rules-panel">
+            <summary>Rules Applied</summary>
+            <div class="rules-content">
+              <p>`observed_fact` without sources becomes `hypothesis`.</p>
+              <p>High-confidence `recall_fast` claims are reduced to `medium`.</p>
+              <p>High-confidence claims without a direct source are reduced to `medium`.</p>
+              <p>`research_unverified` claims are marked provisional and reduced to `low`.</p>
+              <p>Stale high-confidence claims are reduced to `medium`.</p>
+            </div>
+          </details>
         </div>
 
         <div class="panel editor-panel">
@@ -143,6 +157,7 @@
         </div>
       </footer>
     </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script type="module" src="./demo.js"></script>
   </body>
