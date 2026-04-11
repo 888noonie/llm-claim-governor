@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./brand/ninfinityn.svg?v=2" alt="N ∞ N logo" width="180" />
+  <img src="./brand/ninfinityn.svg?v=3" alt="N ∞ N logo" width="180" />
 </p>
 
 # llm-claim-governor
