@@ -186,7 +186,4 @@ npm run build:demo
 GitHub Actions runs test and build on pushes and pull requests via
 [.github/workflows/ci.yml](./.github/workflows/ci.yml).
 
-## Strategy
 
-The repo-level product and go-to-market plan lives in
-[BUSINESS_PLAN.md](./BUSINESS_PLAN.md).
