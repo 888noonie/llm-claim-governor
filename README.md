@@ -1,189 +1,109 @@
-<p align="center">
-  <img src="./brand/ninfinityn.svg?v=3" alt="N ∞ N logo" width="180" />
-</p>
-
 # llm-claim-governor
 
-**Typed provenance and confidence downgrades for LLM claim envelopes.**
+A small TypeScript package that attaches typed provenance to LLM claims and
+downgrades confidence when the evidence is weak, stale, or indirect.
 
 Stop surfacing unsupported claims as observed facts.
 
-`llm-claim-governor` is a small TypeScript package that applies governance rules
-to structured LLM output. It preserves typed sources, downgrades confidence when
-evidence is weak or indirect, and marks unverified research as provisional.
+## What it does
 
-## Why it exists
+LLM output mixes what a model saw, inferred, and invented. This package works on
+the output layer: each claim carries a type, a confidence level, a freshness
+value, and typed sources. A fixed policy returns a corrected envelope plus a note
+explaining what changed. It is a rule engine over structured data, not a
+fact-checker or an agent framework.
 
-Most agent stacks can generate claims faster than they can justify them.
+## Development status
 
-This package focuses on the output layer:
+Dormant since April 2026. The repository has 16 commits, all in April 2026.
+Version 0.1.0 is published on npm; npm reported 21 downloads in the previous
+month at review time. CI is green, and nothing has landed since April.
 
-- unsupported observed facts are downgraded
-- indirect-only evidence cannot stay high confidence
-- unverified research is marked provisional
-- stale evidence cannot remain at maximum confidence
+## What demonstrably works
 
-## Features
+- Typed envelopes for `observed_fact`, `inferred_conclusion`, `hypothesis`, and
+  `recommendation`, with source classes such as `repo_file`, `test_result`,
+  `runtime_probe`, `recall_fast`, `recall_direct`, `research_verified`, and
+  `research_unverified`.
+- The documented rules: an `observed_fact` with no sources becomes a `hypothesis`
+  with `insufficient` confidence; high-confidence claims backed only by
+  `recall_fast` or lacking a direct source drop to `medium`; `research_unverified`
+  is marked provisional and reduced to `low`; stale high-confidence claims drop
+  to `medium`.
+- A configurable direct-source list through `ClaimGovernorOptions`.
+- Zero runtime dependencies, ESM output, and bundled TypeScript declarations.
+- A static browser demo that runs the built package.
 
-- Typed claim envelopes for `observed_fact`, `inferred_conclusion`, `hypothesis`, and `recommendation`
-- Built-in source classes such as `repo_file`, `test_result`, `runtime_probe`, `recall_fast`, and `research_unverified`
-- Configurable direct-source policy
-- Zero runtime dependencies
-- Small API surface: `governClaimEnvelope(...)`, `inferRecallSourceType(...)`, and `ClaimGovernor`
+`governClaimEnvelope(envelope, options?)` applies the rules directly.
+`new ClaimGovernor(options?)` wraps them; `govern()` and `enforce()` are
+equivalent. `inferRecallSourceType()` returns `recall_fast` or `recall_direct`.
 
-## Installation
+## Experimental, incomplete, or planned
+
+- Source types and references are trusted as supplied; the package checks shape
+  and policy effect, not whether a cited file or test exists.
+- Freshness is caller-declared. There is no clock, age calculation, or automatic
+  staleness detection, and the rules do not attempt semantic entailment.
+- No adapters for agent frameworks, no persistence, logging, or policy editor.
+  The demo is a demonstration, not a service.
+- Version 0.1.0; the API may change if work resumes.
+
+## Install and use
 
 ```bash
 npm install llm-claim-governor
 ```
 
-## Demo
-
-This repo includes a static demo that runs the built package in the browser and is
-configured for Vercel deployment.
-
-Local preview:
-
-```bash
-npm install
-npm run dev:demo
-```
-
-Vercel uses [vercel.json](./vercel.json) and builds the deployable demo output into
-`site/` with:
-
-```bash
-npm run build:demo
-```
-
-## Quickstart
-
 ```ts
 import { ClaimGovernor } from 'llm-claim-governor';
 
 const governor = new ClaimGovernor();
-
 const governed = governor.enforce({
-  claims: [
-    {
-      text: 'The database schema changed last week.',
-      type: 'observed_fact',
-      confidence: 'high',
-      freshness: 'live',
-      sources: [],
-    },
-    {
-      text: 'The migration should be reviewed before deployment.',
-      type: 'recommendation',
-      confidence: 'high',
-      freshness: 'live',
-      sources: [{ type: 'repo_file', ref: 'migrations/schema.sql' }],
-    },
-  ],
+  claims: [{
+    text: 'The database schema changed last week.',
+    type: 'observed_fact',
+    confidence: 'high',
+    freshness: 'live',
+    sources: [],
+  }],
 });
 
 console.dir(governed, { depth: null });
 ```
 
-Example result:
+The claim returns as a `hypothesis` with `insufficient` confidence and a note
+that an observed fact without a source was downgraded. See
+[examples/basic.ts](examples/basic.ts) and
+[examples/custom-direct-sources.ts](examples/custom-direct-sources.ts).
 
-```json
-{
-  "claims": [
-    {
-      "text": "The database schema changed last week.",
-      "type": "hypothesis",
-      "confidence": "insufficient",
-      "freshness": "live",
-      "sources": []
-    },
-    {
-      "text": "The migration should be reviewed before deployment.",
-      "type": "recommendation",
-      "confidence": "high",
-      "freshness": "live",
-      "sources": [
-        {
-          "type": "repo_file",
-          "ref": "migrations/schema.sql"
-        }
-      ]
-    }
-  ],
-  "governor_note": "Observed fact without source was downgraded to hypothesis."
-}
-```
+## Inspect the demo or build it
 
-More examples:
+Live demo: <https://llm-claim-governor.vercel.app>. Local demo:
+`npm install && npm run dev:demo`. Build with `npm run build` (package) or
+`npm run build:demo` (demo plus site).
 
-- [examples/basic.ts](./examples/basic.ts)
-- [examples/custom-direct-sources.ts](./examples/custom-direct-sources.ts)
+## Tests and build evidence
 
-## API
+**Observed:** `npm test` passed 5 of 5 tests in
+`test/claim-governor.test.ts`. CI runs `npm ci`, `npm test`, and `npm run build`
+on pushes to `main` and pull requests, and is green. Package 0.1.0 is published
+to npm, and the demo returned HTTP 200 on 31 October 2026.
 
-```ts
-import {
-  ClaimGovernor,
-  governClaimEnvelope,
-  inferRecallSourceType,
-  type ClaimEnvelope,
-  type ClaimGovernorOptions,
-} from 'llm-claim-governor';
-```
+**Claimed:** the README's rule descriptions match the test file; no coverage
+figure or external audit is claimed. Reproduce with `npm install && npm test`.
 
-`governClaimEnvelope(envelope, options?)`
+## Limitations and dependencies
 
-- Applies the governance rules directly to a `ClaimEnvelope`
+- The caller must provide honest claim types, source types, and references. A
+  confidently mislabelled source defeats the policy, and an `observed_fact` with
+  a direct source keeps its type even if that source does not support the claim.
+- Freshness and confidence are inputs, not measurements.
+- `inferRecallSourceType()` is a coarse heuristic: any non-empty telemetry maps
+  to `recall_fast`.
+- Node 22 is used in CI; development uses TypeScript 5.9 and Vitest 3.2.
+- Published as ESM only. Consumers need an ESM-capable runtime or bundler.
+- The demo depends on Vercel Analytics and a static build script.
 
-`new ClaimGovernor(options?)`
+## Licence
 
-- Class wrapper over the same rules
-- `govern(envelope)` and `enforce(envelope)` are equivalent
-
-`inferRecallSourceType(recallTelemetry?)`
-
-- Returns `recall_fast` when telemetry indicates a fast-recall path
-- Returns `recall_direct` otherwise
-
-## Rules Applied
-
-The default governor behavior is:
-
-- `observed_fact` with no sources becomes `hypothesis`
-- high-confidence claims backed only by `recall_fast` are downgraded to `medium`
-- high-confidence claims without a direct source are downgraded to `medium`
-- `research_unverified` claims are marked provisional and reduced to `low`
-- stale high-confidence claims are downgraded to `medium`
-
-## Source Policy
-
-The default direct-source set is:
-
-- `repo_file`
-- `test_result`
-- `runtime_probe`
-- `recall_direct`
-- `research_verified`
-
-You can extend or replace that list through `ClaimGovernorOptions.directSourceTypes`.
-
-## Development
-
-```bash
-npm install
-npm test
-npm run build
-```
-
-Demo build:
-
-```bash
-npm run build:demo
-```
-
-## CI
-
-GitHub Actions runs test and build on pushes and pull requests via
-[.github/workflows/ci.yml](./.github/workflows/ci.yml).
-
-
+MIT. See [LICENSE](LICENSE).
